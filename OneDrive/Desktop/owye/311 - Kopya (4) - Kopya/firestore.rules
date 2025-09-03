@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Kullanıcı kendi verisini okuyup/yazabilir
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      // Alt koleksiyonlar
+      match /meta/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /notifications/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /transactions/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /notes/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // Genel kural: kullanıcının tüm alt koleksiyonlarına (payments, cards, cards/entries,
+      // subscriptions, recurringIncomes vb.) erişime izin ver.
+      // Böylece yeni eklenen koleksiyonlarda da yetki hatası alınmaz.
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Varsayılan: erişim yok
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
