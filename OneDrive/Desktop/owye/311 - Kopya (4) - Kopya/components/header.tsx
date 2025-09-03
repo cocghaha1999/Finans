@@ -244,10 +244,12 @@ export default function AppHeader() {
       localStorage.removeItem('offline-user')
       localStorage.removeItem('offline-credentials')
       
-      // Login sayfasına yönlendir
-      router.push('/login')
+      // Login sayfasına yönlendir - replace kullanarak geri butonuyla dönüş engellenir
+      router.replace('/login')
     } catch (error) {
       console.error('Çıkış yapılırken hata:', error)
+      // Hata durumunda bile login sayfasına yönlendir
+      router.replace('/login')
     }
   }
 

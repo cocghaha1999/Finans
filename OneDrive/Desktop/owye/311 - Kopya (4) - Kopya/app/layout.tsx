@@ -31,6 +31,7 @@ import AppHeader from "@/components/header"
 import ClientHeaderGate from "@/app/route-header-gate"
 import { CalendarFloat } from "@/components/calendar-float"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
+import { AuthGuard } from "@/components/auth-guard"
 
 export default function RootLayout({
   children,
@@ -42,19 +43,21 @@ export default function RootLayout({
       <body className="bg-background">
         {/* App Providers (Auth, Calendar, etc.) */}
         <Providers>
-          <ClientHeaderGate>
-            <AppHeader />
-          </ClientHeaderGate>
-          
-          {/* Main content with mobile-aware padding */}
-          <main className="min-h-screen pb-20 md:pb-0">
-            {children}
-          </main>
-          
-          {/* Mobile bottom navigation */}
-          <MobileBottomNav />
-          
-          <CalendarFloat />
+          <AuthGuard>
+            <ClientHeaderGate>
+              <AppHeader />
+            </ClientHeaderGate>
+            
+            {/* Main content with mobile-aware padding */}
+            <main className="min-h-screen pb-20 md:pb-0">
+              {children}
+            </main>
+            
+            {/* Mobile bottom navigation */}
+            <MobileBottomNav />
+            
+            <CalendarFloat />
+          </AuthGuard>
         </Providers>
       </body>
     </html>

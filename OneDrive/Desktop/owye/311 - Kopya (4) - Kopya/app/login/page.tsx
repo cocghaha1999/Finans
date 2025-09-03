@@ -50,9 +50,38 @@ function LoginContent() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const { loginOffline, isOnline, saveCredentialsForOffline } = useOfflineAuth()
+  const { loginOffline, isOnline, saveCredentialsForOffline, offlineUser } = useOfflineAuth()
   const searchParams = useSearchParams()
   const nextPath = searchParams?.get("next") || "/"
+
+  // Kullanıcı zaten giriş yapmışsa ana sayfaya yönlendir
+  useEffect(() => {
+    const checkAuth = () => {
+      // Online kullanıcı kontrolü
+      if (auth?.currentUser) {
+        router.replace(nextPath)
+        return
+      }
+      
+      // Offline kullanıcı kontrolü
+      if (offlineUser) {
+        router.replace(nextPath)
+        return
+      }
+    }
+
+    checkAuth()
+
+    // Auth state değişikliklerini dinle
+    if (auth) {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        if (user) {
+          router.replace(nextPath)
+        }
+      })
+      return () => unsubscribe()
+    }
+  }, [nextPath, router, offlineUser])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,7 +97,7 @@ function LoginContent() {
               title: "Çevrimdışı Giriş Başarılı", 
               description: "Önceki oturumunuz devam ediyor"
             })
-            router.push(nextPath)
+            router.replace(nextPath)
           } else {
             toast({ 
               variant: "destructive", 
@@ -110,7 +139,7 @@ function LoginContent() {
           saveCredentialsForOffline(cred.user, email, password)
           toast({ title: "Kayıt başarılı" })
         }
-        router.push(nextPath)
+        router.replace(nextPath)
       } catch (err: any) {
         const msg = err?.message || "İşlem sırasında hata oluştu"
         toast({ variant: "destructive", title: "Hata", description: msg })
@@ -135,7 +164,7 @@ function LoginContent() {
         await signInWithPopup(auth, githubProvider)
       }
   toast({ title: "Giriş başarılı" })
-  router.push(nextPath)
+  router.replace(nextPath)
     } catch (err: any) {
   toast({ variant: "destructive", title: "Giriş başarısız", description: err?.message })
     }
