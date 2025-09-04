@@ -1233,57 +1233,6 @@ export default function FinanceDashboard() {
             </SlideUp>
 
             <SlideUp delay={0.3}>
-              <Card className="border-border/50 min-w-0 hover:shadow-xl transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <CalendarDays className="h-5 w-5 text-blue-500" />
-                    <span>Günlük Harcama Dağılımı</span>
-                  </CardTitle>
-                  <CardDescription>Bu ayki günlere göre harcamalar</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {dailyExpenseData.map((dayData) => {
-                      const maxAmount = Math.max(...dailyExpenseData.map(d => d.amount))
-                      const widthPercentage = maxAmount > 0 ? (dayData.amount / maxAmount) * 100 : 0
-                      
-                      return (
-                        <div key={dayData.day} className="relative">
-                          <div className="flex items-center justify-between p-2 rounded-lg bg-muted/20">
-                            <div className="flex items-center space-x-3 min-w-0">
-                              <div className="w-2 h-8 rounded-full bg-gradient-to-t from-blue-600 to-blue-400" 
-                                   style={{ height: `${Math.max(8, widthPercentage / 4)}px` }}></div>
-                              <div>
-                                <div className="font-medium text-sm">{dayData.day}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {dayData.transactionCount} işlem
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-bold text-red-600">
-                                {dayData.amount > 0 ? formatTRYCompact(dayData.amount) : '-'}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {widthPercentage.toFixed(0)}%
-                              </div>
-                            </div>
-                          </div>
-                          {widthPercentage > 0 && (
-                            <div 
-                              className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
-                              style={{ width: `${widthPercentage}%` }}
-                            ></div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </SlideUp>
-            
-            <SlideUp delay={0.4}>
               <Card className="border-border/50 hover:shadow-xl transition-all duration-300">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
