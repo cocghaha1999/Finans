@@ -4,10 +4,12 @@ services:
     env: static
     plan: free
     buildCommand: |
-      export NODE_VERSION=20.18.0
-      curl -fsSL https://get.pnpm.io/install.sh | sh -
-      export PATH="$HOME/.local/share/pnpm:$PATH"
-      pnpm install
+      corepack enable
+      corepack prepare pnpm@latest --activate
+      export npm_config_yes=true
+      export npm_config_audit=false
+      export npm_config_fund=false
+      pnpm install --shamefully-hoist --no-frozen-lockfile
       pnpm run build
     staticPublishPath: out
     envVars:
