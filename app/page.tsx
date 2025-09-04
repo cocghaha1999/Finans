@@ -117,6 +117,7 @@ export default function FinanceDashboard() {
   const [lastAddedDate, setLastAddedDate] = useState<string | null>(null)
   const [userId, setUserId] = useState<string>("")
   const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const [recurringIncomes, setRecurringIncomes] = useState<any[]>([])
   const [activeChart, setActiveChart] = useState<"area" | "line" | "bar">("area")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogType, setDialogType] = useState<TransactionType>("gelir")
@@ -193,6 +194,21 @@ export default function FinanceDashboard() {
       const unsubTransactions = watchTransactions(userId, setTransactions)
       return () => { if (unsubTransactions) unsubTransactions() }
     }
+  }, [userId])
+
+  // Load recurring incomes
+  useEffect(() => {
+    const loadRecurringIncomes = async () => {
+      if (userId && isFirestoreReady()) {
+        try {
+          const incomes = await listRecurringIncomes(userId)
+          setRecurringIncomes(incomes || [])
+        } catch (error) {
+          console.error("Failed to load recurring incomes:", error)
+        }
+      }
+    }
+    loadRecurringIncomes()
   }, [userId])
 
   // Sync monthResetDay from Firestore settings (or localStorage for guests)
@@ -1263,6 +1279,89 @@ export default function FinanceDashboard() {
                       )
                     })}
                   </div>
+                </CardContent>
+              </Card>
+            </SlideUp>
+            
+            <SlideUp delay={0.4}>
+              <Card className="border-border/50 hover:shadow-xl transition-all duration-300">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <RefreshCw className="h-5 w-5 text-green-500" />
+                    <span>Aylık Tekrarlı Gelirler</span>
+                    <Badge variant="outline" className="ml-2">
+                      {recurringIncomes.length} gelir
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>Otomatik olarak eklenen sabit gelirleriniz</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {recurringIncomes.length > 0 ? (
+                    <div className="space-y-3">
+                      {recurringIncomes.map((income, index) => (
+                        <div key={income.id || index} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                              <DollarSign className="h-5 w-5 text-green-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium">{income.description || 'İsimsiz Gelir'}</div>
+                              <div className="text-sm text-green-700">{income.category || 'Genel'}</div>
+                              <div className="text-xs text-muted-foreground">
+                                Sonraki: {income.nextDate ? formatDateTR(income.nextDate) : 'Belirsiz'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-green-600">
+                              +{formatTRY(income.amount || 0)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {income.active !== false ? (
+                                <Badge variant="outline" className="text-green-600 border-green-300">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Aktif
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-gray-500">
+                                  Pasif
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center space-x-2 text-blue-700">
+                          <Activity className="h-4 w-4" />
+                          <span className="text-sm font-medium">Aylık Toplam Gelir Beklentisi</span>
+                        </div>
+                        <div className="text-xl font-bold text-blue-600 mt-1">
+                          +{formatTRY(recurringIncomes.filter(r => r.active !== false).reduce((sum, income) => sum + (income.amount || 0), 0))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                        <RefreshCw className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz tekrarlı gelir yok</h3>
+                      <p className="text-gray-500 mb-4">
+                        Maaş, kira geliri gibi düzenli gelirlerinizi ekleyerek otomatik takip edin.
+                      </p>
+                      <Button 
+                        onClick={() => {
+                          setDialogType("gelir")
+                          setDialogOpen(true)
+                        }}
+                        className="inline-flex items-center space-x-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>İlk Geliri Ekle</span>
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </SlideUp>
