@@ -4,13 +4,8 @@ services:
     env: static
     plan: free
     buildCommand: |
-      corepack enable
-      corepack prepare pnpm@latest --activate
-      export npm_config_yes=true
-      export npm_config_audit=false
-      export npm_config_fund=false
-      pnpm install --shamefully-hoist --no-frozen-lockfile
-      pnpm run build
+      npm ci --legacy-peer-deps --no-audit --no-fund
+      npm run build
     staticPublishPath: out
     envVars:
       - key: NODE_ENV
