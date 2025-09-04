@@ -5,11 +5,11 @@ services:
     plan: free
     runtime: node
     buildCommand: |
-      npm cache clean --force
-      rm -rf node_modules package-lock.json
-      npm install --legacy-peer-deps
-      npm run build
-    startCommand: npm start
+      corepack enable
+      corepack prepare pnpm@8.15.8 --activate
+      pnpm install --frozen-lockfile
+      pnpm run build
+    startCommand: pnpm start
     envVars:
       - key: NODE_ENV
         value: production
