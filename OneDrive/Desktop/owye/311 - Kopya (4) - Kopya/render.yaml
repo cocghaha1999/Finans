@@ -1,27 +1,22 @@
+# Render Static Site configuration for Next.js static export
 services:
-  - type: web
-    name: costik-finans
-    env: node
-    plan: free
-    runtime: node
-    buildCommand: npm ci && npm run build
-    startCommand: npm start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: NODE_VERSION
-        value: 18.17.0
-      - key: NPM_CONFIG_PRODUCTION
-        value: false
-      - key: NEXT_PUBLIC_FIREBASE_API_KEY
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_APP_ID
-        sync: false
+  - type: static
+    name: finans-static
+    env: static
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+    staticPublishPath: out
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /service-worker.js
+        name: Cache-Control
+        value: no-cache
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
+    routes:
+      - type: rewrite
+        source: /_next/static/*
+        destination: /_next/static/*
+      - type: rewrite
+        source: /(.*)
+        destination: /$1

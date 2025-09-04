@@ -25,25 +25,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# IDE
-.vscode/
-.idea/
-
-# OS generated files
-Thumbs.db
-.DS_Store
-
-# Firebase
-.firebase/
-firebase-debug.log
-
-# PWA files
-sw.js
-sw.js.map
-workbox-*.js
-workbox-*.js.map
-
-# User specific files - ignore parent directories
-../../../../*
-../../../*

@@ -82,10 +82,9 @@ export function AuthGuard({ children }: Props) {
     const hasValidUser = user || (isOffline && offlineUser)
 
     if (!hasValidUser) {
-      // Tüm sayfalar için authentication zorunlu - Login'e yönlendir
+      // Oturum açma sayfasına yönlendir
       const qp = pathname && pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : ""
       router.replace(`/login${qp}`)
-      return
     } else {
       setIsReady(true)
       // Grafiklerin yeniden hesaplanması için yeniden boyutlandırma olayını tetikle
@@ -102,16 +101,9 @@ export function AuthGuard({ children }: Props) {
     return <>{children}</>
   }
 
-  // Authentication kontrolü tamamlanana kadar loading göster
   if (!isReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-muted-foreground">Oturum kontrol ediliyor...</p>
-        </div>
-      </div>
-    )
+    // AuthProvider zaten bir yükleme göstergesi gösteriyor, bu yüzden burada null dönebiliriz.
+    return null
   }
 
   return <>{children}</>
