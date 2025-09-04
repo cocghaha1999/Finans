@@ -4,8 +4,10 @@ services:
     env: static
     plan: free
     buildCommand: |
-      yarn install --frozen-lockfile
-      yarn build
+      corepack enable
+      corepack prepare pnpm@8.15.8 --activate
+      pnpm install
+      pnpm run build
     staticPublishPath: out
     envVars:
       - key: NODE_ENV
