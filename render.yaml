@@ -14,7 +14,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
-        value: 18.17.0
+        value: 20.18.0
       - key: NPM_CONFIG_PRODUCTION
         value: false
       - key: NPM_CONFIG_LEGACY_PEER_DEPS
