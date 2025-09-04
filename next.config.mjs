@@ -9,6 +9,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Generate a fully static site
+  output: 'export',
+  // Better compatibility for static hosts (creates route/index.html)
+  trailingSlash: true,
   // Remove standalone output for better compatibility
   // output: 'standalone',
   swcMinify: true,

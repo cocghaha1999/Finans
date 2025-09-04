@@ -1,15 +1,14 @@
 services:
   - type: web
     name: costik-finans
-    env: node
+    env: static
     plan: free
-    runtime: node
     buildCommand: |
       corepack enable
       corepack prepare pnpm@8.15.8 --activate
       pnpm install --frozen-lockfile
       pnpm run build
-    startCommand: pnpm start
+    staticPublishPath: out
     envVars:
       - key: NODE_ENV
         value: production
