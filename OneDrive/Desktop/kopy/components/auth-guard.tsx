@@ -79,9 +79,13 @@ export function AuthGuard({ children }: Props) {
   const [isReady, setIsReady] = useState(false)
   const [waitedMs, setWaitedMs] = useState(0)
 
+  // Normalize path to avoid trailingSlash differences (e.g., "/login" vs "/login/")
+  const normalizedPath = (pathname || "").replace(/\/+$/, "") || "/"
+  const isLoginRoute = normalizedPath === "/login"
+
   useEffect(() => {
     // Login sayfasında AuthGuard kontrolü yapmayın
-    if (pathname === '/login') {
+  if (isLoginRoute) {
       setIsReady(true)
       return
     }
@@ -108,16 +112,17 @@ export function AuthGuard({ children }: Props) {
   }, [user, isOffline, offlineUser, router, pathname])
 
   // Login sayfasında her zaman içeriği göster
-  if (pathname === '/login') {
+  if (isLoginRoute) {
     return <>{children}</>
   }
 
   if (!isReady) {
-    // Beklerken kullanıcıya net mesaj göster
+    // Beklerken kullanıcıya net mesaj ve elle girişe gitme imkanı göster
     return (
       <div className="min-h-[40vh] flex flex-col items-center justify-center text-muted-foreground gap-2">
         <span>Oturum kontrol ediliyor…</span>
         <span className="text-xs opacity-70">Lütfen birkaç saniye bekleyin</span>
+        <a href="/login/" className="mt-2 text-primary text-sm underline">Giriş sayfasına git</a>
       </div>
     )
   }
