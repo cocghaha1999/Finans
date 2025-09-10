@@ -78,6 +78,7 @@ export function AuthGuard({ children }: Props) {
   const pathname = usePathname()
   const [isReady, setIsReady] = useState(false)
   const [waitedMs, setWaitedMs] = useState(0)
+  const [redirectArmed, setRedirectArmed] = useState(false)
 
   // Normalize path to avoid trailingSlash differences (e.g., "/login" vs "/login/")
   const normalizedPath = (pathname || "").replace(/\/+$/, "") || "/"
@@ -99,7 +100,19 @@ export function AuthGuard({ children }: Props) {
     if (!hasValidUser) {
       // Oturum açma sayfasına yönlendir
       const qp = pathname && pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : ""
-      router.replace(`/login${qp}`)
+      const target = `/login/${qp}`.replace(/\?\//, "?")
+      router.replace(target)
+
+      // Eğer client-side navigation ilerlemezse sert yönlendirme uygula (PWA/cache durumları için)
+      if (!redirectArmed) {
+        setRedirectArmed(true)
+        const t = setTimeout(() => {
+          if (typeof window !== "undefined" && !isLoginRoute) {
+            window.location.assign(target)
+          }
+        }, 1200)
+        return () => clearTimeout(t)
+      }
     } else {
       setIsReady(true)
       // Grafiklerin yeniden hesaplanması için yeniden boyutlandırma olayını tetikle
@@ -109,7 +122,7 @@ export function AuthGuard({ children }: Props) {
         }
       }, 50)
     }
-  }, [user, isOffline, offlineUser, router, pathname])
+  }, [user, isOffline, offlineUser, router, pathname, isLoginRoute, redirectArmed])
 
   // Login sayfasında her zaman içeriği göster
   if (isLoginRoute) {
