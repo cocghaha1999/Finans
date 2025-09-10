@@ -3,6 +3,7 @@ services:
   - type: static
     name: costikfinans
     env: static
+    runtime: node
     buildCommand: pnpm install --frozen-lockfile && pnpm run build
     staticPublishPath: out
     pullRequestPreviewsEnabled: true
