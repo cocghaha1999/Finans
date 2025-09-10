@@ -1,0 +1,39 @@
+# Render Static Site configuration for CostikFinans
+services:
+  - type: static
+    name: costikfinans
+    env: static
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+    staticPublishPath: out
+    pullRequestPreviewsEnabled: true
+    customDomains:
+      - costikfinans.site
+    headers:
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
+      - path: /manifest.json
+        name: Cache-Control
+        value: public, max-age=31536000
+      - path: /_next/static/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      - type: redirect
+        source: /mobile-app
+        destination: /features
+        permanent: true
+      - type: redirect
+        source: /download-app
+        destination: /features
+        permanent: true
+      - type: redirect
+        source: /costikfinans-app
+        destination: /features
+        permanent: true
