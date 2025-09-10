@@ -228,6 +228,20 @@ p, span, div[contenteditable], input, textarea, .selectable {
   }
 }
 
+/* Safe defaults for media to avoid accidental oversized renders */
+img, video, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Cap images without explicit Tailwind sizing to a reasonable height */
+img:not([class*="h-"]):not([class*="w-"]):not([style*="width"]):not([style*="height"]) {
+  max-height: min(60vh, 480px);
+  width: auto;
+  object-fit: cover;
+  display: block;
+}
+
 /* Mobile specific responsive utilities */
 @media (max-width: 640px) {
   /* Header mobile optimizations */
