@@ -268,3 +268,14 @@ p, span, div[contenteditable], input, textarea, .selectable {
     opacity: 1 !important;
   }
 }
+
+/* Safety: prevent any unstyled images from blowing up the layout */
+main img:not([width]):not([height]):not([class*="h-"]):not([class*="w-"]) {
+  max-height: min(320px, 50vh);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
