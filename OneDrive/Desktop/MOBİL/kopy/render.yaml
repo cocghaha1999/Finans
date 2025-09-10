@@ -4,7 +4,7 @@ services:
     name: costikfinans
     env: static
     runtime: node
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run build
+    buildCommand: npm install && npm run build
     staticPublishPath: out
     pullRequestPreviewsEnabled: true
     customDomains:
