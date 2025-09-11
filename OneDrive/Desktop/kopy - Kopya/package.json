@@ -4,18 +4,11 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "build:static": "next build && next export",
-    "build:render": "next build && node scripts/build-apk-production.js",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
     "build:apk": "next build && node scripts/build-apk.js",
-    "export": "next build && next export",
-    "build-apk": "node scripts/build-apk-production.js",
-    "build-apk-simple": "node scripts/build-apk-simple.js",
-    "build-apk-local": "powershell -ExecutionPolicy Bypass -File scripts/build-apk-local.ps1",
-    "build-apk-cordova": "node scripts/build-apk-simple.js cordova",
-    "build-apk-auto": "node scripts/build-apk-production.js auto"
+  "export": "node scripts/prepare-static-export.mjs && next build && node scripts/restore-after-export.mjs"
   },
   "engines": {
     "node": "22.16.0"
