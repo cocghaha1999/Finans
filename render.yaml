@@ -1,13 +1,25 @@
-﻿services:
-- type: static
-  name: Finans-static
-  env: static
-  buildCommand: ""
-  staticPublishPath: .
-  headers:
-    - path: /sw.js
-      name: Cache-Control
-      value: no-cache
-    - path: /workbox-*.js
-      name: Cache-Control
-      value: no-cache
+# Render Static Site configuration for Next.js static export
+services:
+  - type: static
+    name: CostikFinans
+    env: static
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+    staticPublishPath: out
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /workbox-*.js
+        name: Cache-Control
+        value: no-cache
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
+    routes:
+      - type: rewrite
+        source: /_next/static/*
+        destination: /_next/static/*
+      - type: rewrite
+        source: /(.*)
+        destination: /$1
