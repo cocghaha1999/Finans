@@ -3,6 +3,9 @@ services:
   - type: static
     name: CostikFinans
     env: static
+    domains:
+      - costikfinans.site
+      - www.costikfinans.site
     buildCommand: pnpm install --frozen-lockfile && pnpm run build
     staticPublishPath: out
     pullRequestPreviewsEnabled: true
@@ -22,4 +25,4 @@ services:
         destination: /_next/static/*
       - type: rewrite
         source: /(.*)
-        destination: /$1
+        destination: /
