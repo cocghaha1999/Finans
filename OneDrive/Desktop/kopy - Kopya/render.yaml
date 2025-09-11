@@ -3,7 +3,7 @@ services:
   - type: static
     name: CostikFinans
     env: static
-    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+  buildCommand: pnpm install --frozen-lockfile && pnpm run export
     staticPublishPath: out
     pullRequestPreviewsEnabled: true
     headers:
