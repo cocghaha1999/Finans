@@ -1,0 +1,25 @@
+{
+  "name": "CostikFinans",
+  "displayName": "CostikFinans - Kişisel Finans",
+  "packageName": "com.costikfinans.app",
+  "version": "1.0.0",
+  "versionCode": 1,
+  "description": "Gelir, gider ve finansal işlemlerinizi kolayca takip edin",
+  "author": "CostikFinans Ekibi",
+  "website": "https://costikfinans.site",
+  "downloadUrl": "https://costikfinans.site/downloads/costikfinans.apk",
+  "size": "2.5 MB (tahmini)",
+  "requirements": {
+    "android": "5.0+",
+    "ram": "1 GB",
+    "storage": "50 MB"
+  },
+  "features": [
+    "Offline çalışma",
+    "Push bildirimleri",
+    "Ana ekran kısayolları",
+    "Tam ekran deneyim"
+  ],
+  "buildDate": "2025-09-11T00:31:59.028Z",
+  "buildType": "release"
+}
