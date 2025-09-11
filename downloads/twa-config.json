@@ -1,0 +1,54 @@
+{
+  "packageId": "com.costikfinans.app",
+  "host": "https://costikfinans.vercel.app",
+  "name": "CostikFinans",
+  "launcherName": "CostikFinans - Kişisel Finans",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#3b82f6",
+  "backgroundColor": "#ffffff",
+  "startUrl": "/",
+  "iconUrl": "https://costikfinans.vercel.app/icons/icon-512x512.png",
+  "maskableIconUrl": "https://costikfinans.vercel.app/icons/icon-512x512.png",
+  "monochromeIconUrl": "https://costikfinans.vercel.app/icons/icon-512x512.png",
+  "splashScreenColor": "#ffffff",
+  "version": "1.0.0",
+  "versionCode": 1,
+  "enableNotifications": true,
+  "enableLocationDelegation": false,
+  "enablePaymentDelegation": false,
+  "enablePhotoPickerDelegation": false,
+  "features": {
+    "playBilling": {
+      "enabled": false
+    },
+    "locationDelegation": {
+      "enabled": false
+    },
+    "googlePhotosSharing": {
+      "enabled": false
+    }
+  },
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "webManifestUrl": "https://costikfinans.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "shortcuts": [
+    {
+      "name": "Gelir Ekle",
+      "shortName": "Gelir",
+      "url": "/?action=add-income",
+      "iconUrl": "https://costikfinans.vercel.app/icons/icon-192x192.png"
+    },
+    {
+      "name": "Gider Ekle",
+      "shortName": "Gider",
+      "url": "/?action=add-expense",
+      "iconUrl": "https://costikfinans.vercel.app/icons/icon-192x192.png"
+    }
+  ]
+}
