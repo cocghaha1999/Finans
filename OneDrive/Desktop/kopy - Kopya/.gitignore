@@ -1,11 +1,15 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# dependencies (ignore all node_modules at any depth)
+node_modules/
+**/node_modules/
 
-# next.js
-/.next/
-/out/
+# next.js & build outputs
+.next/
+**/.next/
+out/
+dist/
+coverage/
 
 # production
 /build
@@ -25,3 +29,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary tool/work folders (do not commit)
+temp-*/
+cordova-simple/
+temp-cordova/
+temp-twa/
+temp-capacitor/
+
+# Android local build outputs
+minimal-apk/.gradle/
+minimal-apk/.idea/
+minimal-apk/build/
