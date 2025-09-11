@@ -16,16 +16,11 @@ export function PWAInstallBanner() {
       e.preventDefault()
       setInstallPrompt(e)
       
-      // Always show banner when prompt is available
-      setIsVisible(true)
-    }
-
-    const handleAppInstalled = () => {
-      setIsVisible(false)
-      toast({
-        title: "Uygulama Yüklendi!",
-        description: "CostikFinans artık ana ekranınızda. Uygulamayı açın!",
-      })
+      // Check if user has dismissed the banner before
+      const dismissed = localStorage.getItem('pwa-banner-dismissed')
+      if (!dismissed) {
+        setIsVisible(true)
+      }
     }
 
     // Check if already installed
@@ -33,18 +28,10 @@ export function PWAInstallBanner() {
       return
     }
 
-    // Show banner for iOS devices (manual install)
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-    if (isIOS && !localStorage.getItem('pwa-banner-dismissed-ios')) {
-      setTimeout(() => setIsVisible(true), 2000) // Delay for iOS
-    }
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
 

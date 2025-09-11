@@ -23,11 +23,32 @@ export function QRDownload({ downloadUrl, appName = "CostikFinans" }: QRDownload
   const generateQRCode = async () => {
     try {
       setIsLoading(true)
-      // Use external QR service directly for static hosting
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(downloadUrl)}&format=png&bgcolor=FFFFFF&color=000000&margin=10`
-      setQrCodeUrl(qrUrl)
+      
+      // QR kod oluşturmak için API çağrısı
+      const response = await fetch('/api/qr-generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: downloadUrl,
+          size: 200,
+          format: 'png'
+        })
+      })
+
+      if (!response.ok) {
+        // Fallback: External QR service kullan
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(downloadUrl)}&format=png&bgcolor=FFFFFF&color=000000&margin=10`
+        setQrCodeUrl(qrUrl)
+      } else {
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+        setQrCodeUrl(url)
+      }
     } catch (error) {
       console.error('QR kod oluşturma hatası:', error)
+      // Fallback QR service
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(downloadUrl)}&format=png&bgcolor=FFFFFF&color=000000&margin=10`
       setQrCodeUrl(qrUrl)
     } finally {
@@ -53,12 +74,14 @@ export function QRDownload({ downloadUrl, appName = "CostikFinans" }: QRDownload
 
   const downloadQR = () => {
     if (!qrCodeUrl) return
+    
     const a = document.createElement('a')
     a.href = qrCodeUrl
     a.download = `${appName}-QR.png`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
+    
     toast({
       title: "QR Kod İndirildi",
       description: "QR kod resmi indirildi.",
@@ -93,6 +116,7 @@ export function QRDownload({ downloadUrl, appName = "CostikFinans" }: QRDownload
                 alt={`${appName} QR Kod`}
                 className="w-48 h-48 rounded-lg"
                 onError={() => {
+                  // Tekrar fallback QR service dene
                   const fallbackUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(downloadUrl)}&choe=UTF-8`
                   setQrCodeUrl(fallbackUrl)
                 }}

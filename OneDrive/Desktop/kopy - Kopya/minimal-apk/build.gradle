@@ -1,0 +1,15 @@
+android {
+    compileSdkVersion 33
+    defaultConfig {
+        applicationId "com.costikfinans.app"
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0.0"
+    }
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+    }
+}

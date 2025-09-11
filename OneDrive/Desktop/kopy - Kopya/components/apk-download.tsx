@@ -4,21 +4,16 @@ import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, Download, Smartphone, CheckCircle, ExternalLink, Shield, Zap, Cloud, RefreshCw, AlertTriangle } from "lucide-react"
+import { AlertCircle, Download, Smartphone, CheckCircle, ExternalLink, Shield, Zap, Cloud, RefreshCw } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import { APKValidator, type APKValidationResult } from "@/lib/apk-validator"
 
 export function ApkDownload() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [installPrompt, setInstallPrompt] = useState<any>(null)
   const [isInstallable, setIsInstallable] = useState(false)
-  const [apkAvailable, setApkAvailable] = useState(false)
-  const [apkValidation, setApkValidation] = useState<APKValidationResult | null>(null)
-  const [isValidating, setIsValidating] = useState(false)
-  const apkUrl = '/downloads/costikfinans.apk'
   const [deviceInfo, setDeviceInfo] = useState<{
     isAndroid: boolean
     isIOS: boolean
@@ -56,28 +51,6 @@ export function ApkDownload() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
 
-    // Check if APK file exists on server (HEAD preferred, fallback GET)
-    ;(async () => {
-      try {
-        const head = await fetch(apkUrl, { method: 'HEAD', cache: 'no-store' })
-        if (head.ok) {
-          setApkAvailable(true)
-          // Validate APK security
-          validateAPK()
-          return
-        }
-      } catch {}
-      try {
-        const res = await fetch(apkUrl, { method: 'GET', cache: 'no-store' })
-        setApkAvailable(res.ok)
-        if (res.ok) {
-          validateAPK()
-        }
-      } catch {
-        setApkAvailable(false)
-      }
-    })()
-
     // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstallable(false)
@@ -87,28 +60,6 @@ export function ApkDownload() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     }
   }, [])
-
-  const validateAPK = async () => {
-    setIsValidating(true)
-    try {
-      const validation = await APKValidator.validateAPKFromURL(
-        `${window.location.origin}/downloads/costikfinans.apk`
-      )
-      setApkValidation(validation)
-      
-      if (!validation.isValid) {
-        toast({
-          title: "⚠️ APK Güvenlik Uyarısı",
-          description: `APK dosyasında sorunlar tespit edildi. Güvenlik skoru: ${validation.securityScore}%`,
-          variant: "destructive"
-        })
-      }
-    } catch (error) {
-      console.error('APK validation error:', error)
-    } finally {
-      setIsValidating(false)
-    }
-  }
 
   const handlePWAInstall = async () => {
     if (!installPrompt) {
@@ -143,43 +94,52 @@ export function ApkDownload() {
   }
 
   const handleApkDownload = async () => {
-    // Eğer PWA kurulumu mümkünse önce onu dene
-    if (isInstallable && installPrompt) {
-      return handlePWAInstall()
-    }
-
-    // APK validation check
-    if (apkValidation && !apkValidation.isValid) {
-      toast({
-        title: "⚠️ Güvenlik Uyarısı",
-        description: `APK dosyası güvenilir görünmüyor (Skor: ${apkValidation.securityScore}%). PWA kurulumunu tercih edin.`,
-        variant: "destructive"
-      })
-      return
-    }
-
     setIsDownloading(true)
     setDownloadProgress(0)
 
     try {
-      if (apkAvailable) {
-        // UX için sahte ilerleme
-        const progressInterval = setInterval(() => {
-          setDownloadProgress(prev => {
-            if (prev >= 90) { clearInterval(progressInterval); return prev }
-            return prev + Math.random() * 10
-          })
-        }, 100)
-
-        const response = await fetch(apkUrl, {
-          method: 'GET',
-          headers: { 'Accept': 'application/vnd.android.package-archive' },
+      // Simulate progress for better UX
+      const progressInterval = setInterval(() => {
+        setDownloadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval)
+            return prev
+          }
+          return prev + Math.random() * 10
         })
-        if (!response.ok) throw new Error('APK bulunamadı')
-        const blob = await response.blob()
+      }, 100)
+
+      // Try to download the pre-built APK file first
+      const response = await fetch('/downloads/costikfinans.apk', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.android.package-archive',
+        }
+      })
+
+      if (!response.ok) {
+        // Fallback to API generation
+        const apiResponse = await fetch('/api/apk/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            appName: 'CostikFinans',
+            packageName: 'com.costikfinans.app',
+            version: '1.0.0'
+          })
+        })
+
+        if (!apiResponse.ok) {
+          throw new Error('APK dosyası bulunamadı')
+        }
+
+        const blob = await apiResponse.blob()
         clearInterval(progressInterval)
         setDownloadProgress(100)
 
+        // Create download link
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
@@ -188,19 +148,35 @@ export function ApkDownload() {
         a.click()
         document.body.removeChild(a)
         window.URL.revokeObjectURL(url)
+      } else {
+        // Direct download from static file
+        const blob = await response.blob()
+        clearInterval(progressInterval)
+        setDownloadProgress(100)
 
-        toast({ title: 'İndirme hazır', description: 'APK dosyası indirildi.' })
-        return
+        // Create download link
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'CostikFinans.apk'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
       }
 
-      // APK yoksa PWA Builder'a yönlendir
-      const pwaBuilderUrl = `https://pwabuilder.com/?site=${encodeURIComponent(window.location.origin)}`
-      window.open(pwaBuilderUrl, '_blank')
-      setDownloadProgress(100)
-      toast({ title: 'PWA Builder açıldı', description: 'Android seçeneğiyle APK oluşturun.' })
+      toast({
+        title: "İndirme Tamamlandı!",
+        description: "CostikFinans.apk dosyası indirildi. Kurulum rehberine göz atın.",
+      })
+
     } catch (error) {
       console.error('APK download error:', error)
-      toast({ title: 'İndirme Hatası', description: 'APK indirilemedi. PWA kurulumunu deneyin.', variant: 'destructive' })
+      toast({
+        title: "İndirme Hatası",
+        description: "APK dosyası indirilemedi. PWA kurulumunu deneyin.",
+        variant: "destructive"
+      })
     } finally {
       setIsDownloading(false)
       setTimeout(() => setDownloadProgress(0), 2000)
@@ -234,60 +210,6 @@ export function ApkDownload() {
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* APK Security Status */}
-        {apkAvailable && (
-          <div className="space-y-3">
-            {isValidating ? (
-              <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-                <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
-                <span className="text-sm text-blue-800">APK güvenlik kontrolü yapılıyor...</span>
-              </div>
-            ) : apkValidation ? (
-              <div className={`p-3 rounded-lg border ${
-                apkValidation.securityScore >= 70 ? 'bg-green-50 border-green-200' :
-                apkValidation.securityScore >= 50 ? 'bg-yellow-50 border-yellow-200' :
-                'bg-red-50 border-red-200'
-              }`}>
-                <div className="flex items-center gap-2 mb-2">
-                  {apkValidation.securityScore >= 70 ? (
-                    <Shield className="h-4 w-4 text-green-600" />
-                  ) : apkValidation.securityScore >= 50 ? (
-                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                  )}
-                  <span className={`text-sm font-medium ${
-                    apkValidation.securityScore >= 70 ? 'text-green-800' :
-                    apkValidation.securityScore >= 50 ? 'text-yellow-800' :
-                    'text-red-800'
-                  }`}>
-                    APK Güvenlik: {apkValidation.securityScore}%
-                  </span>
-                  <Badge variant="outline" className="text-xs">
-                    {APKValidator.formatSize(apkValidation.size)}
-                  </Badge>
-                </div>
-                
-                {apkValidation.errors.length > 0 && (
-                  <div className="text-xs text-red-700 space-y-1 mb-2">
-                    {apkValidation.errors.map((error, i) => (
-                      <p key={i}>❌ {error}</p>
-                    ))}
-                  </div>
-                )}
-                
-                {apkValidation.warnings.length > 0 && (
-                  <div className="text-xs text-yellow-700 space-y-1">
-                    {apkValidation.warnings.map((warning, i) => (
-                      <p key={i}>⚠️ {warning}</p>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </div>
-        )}
-
         {/* PWA Install Option */}
         {isInstallable && (
           <div className="space-y-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
@@ -348,17 +270,17 @@ export function ApkDownload() {
         )}
 
         {/* APK Download Option */}
-        <div className="space-y-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+        <div className="space-y-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <ExternalLink className="h-4 w-4 text-blue-600" />
+            <div className="p-2 bg-orange-100 rounded-full">
+              <Download className="h-4 w-4 text-orange-600" />
             </div>
             <div className="flex-1">
-              <span className="text-sm font-semibold text-blue-800">Gerçek APK İndir</span>
+              <span className="text-sm font-semibold text-orange-800">APK Dosyası</span>
               <div className="flex gap-1 mt-1">
-                <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">PWA Builder</Badge>
+                <Badge variant="outline" className="text-xs border-orange-300 text-orange-700">Manuel</Badge>
                 {deviceInfo.isAndroid && (
-                  <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">Android</Badge>
+                  <Badge variant="outline" className="text-xs border-orange-300 text-orange-700">Android</Badge>
                 )}
               </div>
             </div>
@@ -366,34 +288,20 @@ export function ApkDownload() {
 
           <Button 
             onClick={handleApkDownload}
-            disabled={isDownloading || (apkValidation ? !apkValidation.isValid : false)}
+            disabled={isDownloading}
             variant="outline"
-            className={`w-full ${
-              apkValidation && !apkValidation.isValid 
-                ? 'border-red-300 bg-red-50 text-red-700 cursor-not-allowed' 
-                : 'border-blue-300 hover:bg-blue-100'
-            }`}
+            className="w-full border-orange-300 hover:bg-orange-100"
             size="lg"
           >
             {isDownloading ? (
               <>
                 <div className="animate-spin h-4 w-4 mr-2 border-2 border-current border-t-transparent rounded-full" />
-                PWA Builder Açılıyor...
-              </>
-            ) : apkValidation && !apkValidation.isValid ? (
-              <>
-                <AlertCircle className="h-4 w-4 mr-2" />
-                APK Güvenilir Değil - PWA Kullanın
-              </>
-            ) : apkAvailable ? (
-              <>
-                <Download className="h-4 w-4 mr-2" />
-                APK İndir {!deviceInfo.isAndroid ? '(Android için)' : ''}
+                İndiriliyor... {Math.round(downloadProgress)}%
               </>
             ) : (
               <>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                PWA Builder ile APK Oluştur
+                <Download className="h-4 w-4 mr-2" />
+                APK Dosyası İndir {deviceInfo.isAndroid ? '' : '(Android için)'}
               </>
             )}
           </Button>
@@ -401,19 +309,19 @@ export function ApkDownload() {
           {isDownloading && (
             <div className="space-y-2">
               <Progress value={downloadProgress} className="h-2" />
-              <p className="text-xs text-center text-blue-600">
-                PWA Builder sitesi açılıyor... Lütfen bekleyin
+              <p className="text-xs text-center text-orange-600">
+                Dosya hazırlanıyor... Lütfen bekleyin
               </p>
             </div>
           )}
 
-          <div className="text-xs text-blue-700 space-y-1">
+          <div className="text-xs text-orange-700 space-y-1">
             <div className="flex items-start gap-2">
               <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
               <div className="space-y-1">
-                <p>• PWA Builder sitesinde Android seçeneğini seçin</p>
-                <p>• Oluşturulan APK dosyasını indirin</p>
-                <p>• İmzalanmış, kuruluma hazır APK elde edin</p>
+                <p>• Bilinmeyen kaynaklardan yüklemeyi etkinleştirin</p>
+                <p>• İndirilen APK dosyasını açın ve yükleyin</p>
+                <p>• Manuel güncellemeler gerekebilir</p>
               </div>
             </div>
           </div>

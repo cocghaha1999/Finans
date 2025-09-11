@@ -1,0 +1,5 @@
+User-Agent: *
+Allow: /
+
+Host: https://costikfinans.site
+Sitemap: https://costikfinans.site/sitemap.xml

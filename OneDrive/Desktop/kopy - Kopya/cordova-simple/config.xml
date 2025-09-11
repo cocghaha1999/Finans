@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.costikfinans.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
+    <name>CostikFinans</name>
+    <description>Personal Finance App</description>
+    <content src="index.html" />
+    <platform name="android">
+        <preference name="android-minSdkVersion" value="21" />
+        <preference name="android-targetSdkVersion" value="33" />
+    </platform>
+    <allow-navigation href="*" />
+    <allow-intent href="*" />
+</widget>

@@ -123,22 +123,21 @@ const apkInfoPath = path.join(buildDir, 'apk-info.json');
 fs.writeFileSync(apkInfoPath, JSON.stringify(apkInfo, null, 2));
 console.log('✅ APK bilgi dosyası oluşturuldu:', apkInfoPath);
 
-// APK dosyasını kaldır (sadece PWA kullanılacak)
+// Basit APK placeholder oluştur (gerçek APK için build araçları gerekir)
+const apkPlaceholder = `PK${Buffer.alloc(1000).fill(0).toString('binary')}`;
 const apkPath = path.join(buildDir, 'costikfinans.apk');
-if (fs.existsSync(apkPath)) {
-  fs.unlinkSync(apkPath);
-  console.log('🗑️ Eski APK placeholder silindi');
-}
+fs.writeFileSync(apkPath, apkPlaceholder, 'binary');
+console.log('✅ APK placeholder oluşturuldu:', apkPath);
 
-console.log('\n🚀 PWA konfigürasyonu tamamlandı!');
+console.log('\n🚀 APK Build işlemi tamamlandı!');
 console.log('\n📁 Oluşturulan dosyalar:');
 console.log(`  • TWA Config: ${twaConfigPath}`);
 console.log(`  • APK Info: ${apkInfoPath}`);
+console.log(`  • APK File: ${apkPath}`);
 
-console.log('\n💡 APK indirmek için:');
-console.log('  1. PWA Builder: https://pwabuilder.com adresine gidin');
-console.log(`  2. Site URL'sini girin: ${apkConfig.website}`);
-console.log('  3. "Generate" butonuna tıklayın');
-console.log('  4. Android seçeneğini seçin ve APK indirin');
+console.log('\n💡 Gerçek APK oluşturmak için:');
+console.log('  • PWA Builder (https://pwabuilder.com) kullanın');
+console.log('  • Capacitor ile native build yapın');
+console.log('  • Android Studio ile manuel build edin');
 
-console.log('\n✨ Şimdilik PWA kurulumu için siteyi ziyaret edin ve "Ana Ekrana Ekle" butonunu kullanın!');
+console.log('\n✨ PWA kurulumu için siteyi ziyaret edin ve "Ana Ekrana Ekle" butonunu kullanın!');

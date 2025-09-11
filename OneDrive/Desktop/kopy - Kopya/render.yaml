@@ -3,31 +3,14 @@ services:
   - type: static
     name: CostikFinans
     env: static
-    runtime: node
-    buildCommand: npm install && npm run build:render
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build
     staticPublishPath: out
     pullRequestPreviewsEnabled: true
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: NEXT_TELEMETRY_DISABLED
-        value: 1
-      - key: RENDER_BUILD
-        value: true
     headers:
       - path: /sw.js
         name: Cache-Control
         value: no-cache
       - path: /workbox-*.js
-        name: Cache-Control
-        value: no-cache
-      - path: /downloads/costikfinans.apk
-        name: Content-Type
-        value: application/vnd.android.package-archive
-      - path: /downloads/costikfinans.apk
-        name: Content-Disposition
-        value: attachment; filename="CostikFinans.apk"
-      - path: /downloads/costikfinans.apk
         name: Cache-Control
         value: no-cache
       - path: /*

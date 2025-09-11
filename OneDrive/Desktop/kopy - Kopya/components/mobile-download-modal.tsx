@@ -6,12 +6,11 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertCircle, Download, Smartphone, CheckCircle, ExternalLink, Shield, Zap, Cloud, RefreshCw, QrCode, Copy, AlertTriangle } from "lucide-react"
+import { AlertCircle, Download, Smartphone, CheckCircle, ExternalLink, Shield, Zap, Cloud, RefreshCw, QrCode, Copy } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { QRDownload } from "@/components/qr-download"
-import { APKValidator, type APKValidationResult } from "@/lib/apk-validator"
 
 interface MobileDownloadModalProps {
   isOpen: boolean
@@ -19,11 +18,8 @@ interface MobileDownloadModalProps {
 }
 
 export function MobileDownloadModal({ isOpen, onClose }: MobileDownloadModalProps) {
-  const [installPrompt, setInstallPrompt] = useState<any>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
-  const [apkValidation, setApkValidation] = useState<APKValidationResult | null>(null)
-  const [isValidating, setIsValidating] = useState(false)
   const [deviceInfo, setDeviceInfo] = useState<{
     isAndroid: boolean
     isIOS: boolean
@@ -51,46 +47,7 @@ export function MobileDownloadModal({ isOpen, onClose }: MobileDownloadModalProp
     else if (userAgent.includes('edge')) browserName = 'Edge'
 
     setDeviceInfo({ isAndroid, isIOS, isMobile, browserName })
-
-    // PWA install prompt
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault()
-      setInstallPrompt(e)
-    }
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-
-    // APK validation when modal opens
-    if (isOpen) {
-      validateAPK()
-    }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    }
-  }, [isOpen])
-
-  const validateAPK = async () => {
-    setIsValidating(true)
-    try {
-      const validation = await APKValidator.validateAPKFromURL(
-        `${window.location.origin}/downloads/costikfinans.apk`
-      )
-      setApkValidation(validation)
-      
-      if (!validation.isValid) {
-        toast({
-          title: "APK Güvenlik Uyarısı",
-          description: `APK dosyasında sorunlar tespit edildi. Güvenlik skoru: ${validation.securityScore}%`,
-          variant: "destructive"
-        })
-      }
-    } catch (error) {
-      console.error('APK validation error:', error)
-    } finally {
-      setIsValidating(false)
-    }
-  }
+  }, [])
 
   const handlePWAInstall = () => {
     toast({
@@ -101,46 +58,10 @@ export function MobileDownloadModal({ isOpen, onClose }: MobileDownloadModalProp
   }
 
   const handleApkDownload = async () => {
-    // APK validation check first
-    if (apkValidation && !apkValidation.isValid) {
-      toast({
-        title: "⚠️ Güvenlik Uyarısı",
-        description: `APK dosyası güvenilir görünmüyor (Skor: ${apkValidation.securityScore}%). PWA kurulumunu tercih edin.`,
-        variant: "destructive"
-      })
-      return
-    }
-
     setIsDownloading(true)
     setDownloadProgress(0)
 
     try {
-      // Re-validate APK before download
-      const validation = await APKValidator.validateAPKFromURL('/downloads/costikfinans.apk')
-      
-      if (!validation.isValid) {
-        throw new Error(`APK güvenlik kontrolü başarısız: ${validation.errors.join(', ')}`)
-      }
-
-      // Check if APK exists first (HEAD), fallback GET
-      const apkUrl = '/downloads/costikfinans.apk'
-      try {
-        const head = await fetch(apkUrl, { method: 'HEAD', cache: 'no-store' })
-        if (!head.ok) {
-          throw new Error('APK bulunamadı (HEAD)')
-        }
-      } catch (e) {
-        // Fallback GET check
-        const check = await fetch(apkUrl, { method: 'GET', cache: 'no-store' })
-        if (!check.ok) {
-          // Open PWA Builder as fallback
-          const pwaBuilderUrl = `https://pwabuilder.com/?site=${encodeURIComponent(window.location.origin)}`
-          window.open(pwaBuilderUrl, '_blank')
-          toast({ title: 'PWA Builder açıldı', description: 'APK şu an mevcut değil. PWA Builder ile oluşturabilirsiniz.' })
-          return
-        }
-      }
-
       // Simulate progress
       const progressInterval = setInterval(() => {
         setDownloadProgress(prev => {
@@ -153,7 +74,7 @@ export function MobileDownloadModal({ isOpen, onClose }: MobileDownloadModalProp
       }, 200)
 
       // Direct download
-      const response = await fetch('/downloads/costikfinans.apk', { headers: { 'Accept': 'application/vnd.android.package-archive' } })
+      const response = await fetch('/downloads/costikfinans.apk')
       
       if (!response.ok) {
         throw new Error('APK dosyası bulunamadı')
@@ -184,7 +105,7 @@ export function MobileDownloadModal({ isOpen, onClose }: MobileDownloadModalProp
       console.error('APK download error:', error)
       toast({
         title: "İndirme Hatası",
-  description: "APK indirilemedi. PWA kurulumunu deneyin veya PWA Builder ile APK oluşturun.",
+        description: "APK dosyası indirilemedi. PWA kurulumunu deneyin.",
         variant: "destructive"
       })
     } finally {
@@ -319,79 +240,17 @@ export function MobileDownloadModal({ isOpen, onClose }: MobileDownloadModalProp
                   </div>
                 </div>
 
-                {/* APK Security Status */}
-                {isValidating ? (
-                  <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg mb-3">
-                    <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
-                    <span className="text-sm text-blue-800">APK güvenlik kontrolü yapılıyor...</span>
-                  </div>
-                ) : apkValidation ? (
-                  <div className={`p-3 rounded-lg mb-3 ${
-                    apkValidation.securityScore >= 70 ? 'bg-green-50 border border-green-200' :
-                    apkValidation.securityScore >= 50 ? 'bg-yellow-50 border border-yellow-200' :
-                    'bg-red-50 border border-red-200'
-                  }`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      {apkValidation.securityScore >= 70 ? (
-                        <Shield className="h-4 w-4 text-green-600" />
-                      ) : apkValidation.securityScore >= 50 ? (
-                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-red-600" />
-                      )}
-                      <span className={`text-sm font-medium ${
-                        apkValidation.securityScore >= 70 ? 'text-green-800' :
-                        apkValidation.securityScore >= 50 ? 'text-yellow-800' :
-                        'text-red-800'
-                      }`}>
-                        Güvenlik Skoru: {apkValidation.securityScore}%
-                      </span>
-                    </div>
-                    
-                    {apkValidation.size > 0 && (
-                      <p className="text-xs text-gray-600 mb-1">
-                        Boyut: {APKValidator.formatSize(apkValidation.size)}
-                      </p>
-                    )}
-                    
-                    {apkValidation.errors.length > 0 && (
-                      <div className="text-xs text-red-700 space-y-1">
-                        {apkValidation.errors.map((error, i) => (
-                          <p key={i}>❌ {error}</p>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {apkValidation.warnings.length > 0 && (
-                      <div className="text-xs text-yellow-700 space-y-1">
-                        {apkValidation.warnings.map((warning, i) => (
-                          <p key={i}>⚠️ {warning}</p>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : null}
-
                 <Button 
                   onClick={handleApkDownload}
-                  disabled={isDownloading || (apkValidation ? !apkValidation.isValid : false)}
+                  disabled={isDownloading}
                   variant="outline"
-                  className={`w-full mb-3 ${
-                    apkValidation && !apkValidation.isValid 
-                      ? 'border-red-300 bg-red-50 text-red-700 cursor-not-allowed' 
-                      : 'border-orange-300 hover:bg-orange-100'
-                  }`}
+                  className="w-full border-orange-300 hover:bg-orange-100 mb-3"
                   size="sm"
                 >
                   {isDownloading ? (
                     <>
                       <div className="animate-spin h-4 w-4 mr-2 border-2 border-current border-t-transparent rounded-full" />
                       İndiriliyor... {Math.round(downloadProgress)}%
-                    </>
-                  ) : apkValidation && !apkValidation.isValid ? (
-                    <>
-                      <AlertCircle className="h-4 w-4 mr-2" />
-                      APK Güvenilir Değil
                     </>
                   ) : (
                     <>
